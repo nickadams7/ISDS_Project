@@ -2,6 +2,7 @@
 
 The Repo used for ISDS group 4 project.
 
+<<<<<<< HEAD
 This project includes team members: Nick Adams, Rachel Ferrara, Megan Campbell, Waleed Al Amri, Angela 
 
 ##Research Question
