@@ -1,0 +1,106 @@
+---
+title: "lesson 10"
+author: "Dario Bonaretti"
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, eval = F)
+#options(tibble.print_max = 40)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+conStudent <- src_mysql(
+                   host = "ba-isdsclass-programdev.lsu.edu",
+                  port = 3306,
+                  user = 'student',
+                  password = 'student',
+                  dbname = "isds_3105")
+conStudent
+```
+
+```{r}
+college <- tbl(conStudent, 'college')
+continuingeducation <- tbl(conStudent,'continuingeducation')
+currentposition <- tbl(conStudent,'currentposition')
+employment <- tbl(conStudent,'employment')
+fulltime <- tbl(conStudent,'fulltime')
+graduation <- tbl(conStudent,'graduation')
+graduationtitle <- tbl(conStudent,'graduationtitle')
+internship <- tbl(conStudent,'internship')
+location <- tbl(conStudent,'location')
+organization <- tbl(conStudent,'organization')
+paidinternship <- tbl(conStudent,'paidinternship')
+parentcompany <- tbl(conStudent,'parentcompany')
+title <- tbl(conStudent,'title')
+volunteering <- tbl(conStudent,'volunteering')
+college <- as_data_frame(college)
+continuingeducation <- as_data_frame(continuingeducation)
+currentposition <- as_data_frame(currentposition)
+employment <- as_data_frame(employment)
+fulltime <- as_data_frame(fulltime)
+graduation <- as_data_frame(graduation)
+graduationtitle <- as_data_frame(graduationtitle)
+internship <- as_data_frame(internship) 
+location <- as_data_frame(location) 
+organization <- as_data_frame(organization) 
+paidinternship <- as_data_frame(paidinternship) 
+parentcompany <- as_data_frame(parentcompany) 
+title <- as_data_frame(title) 
+volunteering <- as_data_frame(volunteering) 
+```
+
+```{r}
+editedGraduation <- graduation %>% select(graduationId,idCollege,cumulativeGPA)
+averageGPAcollege <- editedGraduation %>% group_by(idCollege) %>% summarise(avg = mean(cumulativeGPA, na.rm = T))
+collegeGPAdata <- right_join(averageGPAcollege, college, by = "idCollege", copy = T) %>% filter(idCollege != 'L') %>% filter(idCollege != 'NA')
+
+ggplot(data = collegeGPAdata)+
+  geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   ggtitle('GPA by College') 
+```
+
+```{r}
+numcollege <- left_join(graduation, college, by = 'idCollege', copy = T) %>% select(graduationId, collegeName) %>% group_by(collegeName) %>% count()
+```
+
+```{r}
+gradandcollege <- left_join(graduation, college, by = 'idCollege', copy = T)
+```
+
+
+```{r}
+fulltime <- fulltime %>% mutate(graduationId = idCurrentPosition)
+```
+
+```{r}
+saldata <- gradandcollege %>% left_join(fulltime) %>% select(graduationId, collegeName, salary) %>% group_by(collegeName) %>% summarise(avg = mean(salary, na.rm = T)) %>% filter(collegeName != 'NA')
+```
+
+```{r}
+ggplot(data = saldata)+
+  geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   ggtitle('Salaries by College') 
+```
+
+```{r}
+activity <- gradandcollege %>% select(graduationId,graduationExpectedActivity,collegeName)
+
+ggplot(data = activity)+
+  geom_col(aes(x = collegeName, y = graduationExpectedActivity))+ 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   ggtitle('Activity by College')+
+  facet_wrap(~graduationExpectedActivity)
+
+```
+
