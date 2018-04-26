@@ -1,19 +1,17 @@
 ---
-title: "lesson 10"
-author: "Dario Bonaretti"
-output:
-  pdf_document: default
-  html_document: default
-editor_options:
-  chunk_output_type: console
+title: "Project"
+author: "Nicholas Adams,Waleed AlAmri,Rachel Ferrara, Megan Campbell,Angela Andrews"
+date: "4/26/2018"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, eval = F)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
 library(tidyverse)
+library(knitr)
 ```
 
 ```{r}
@@ -57,10 +55,16 @@ title <- as_data_frame(title)
 volunteering <- as_data_frame(volunteering) 
 ```
 
+##GPA by College
+
+GPA is used to test how well each college's staff is preparing and teaching their students. 
+
 ```{r}
 editedGraduationUnder <- graduation %>% filter(degreeLevel == 'Bachelor') %>%  select(graduationId,idCollege,cumulativeGPA)
 averageGPAcollegeUnder <- editedGraduationUnder %>% group_by(idCollege) %>% summarise(avg = mean(cumulativeGPA, na.rm = T))
 collegeGPAdataUnder <- right_join(averageGPAcollegeUnder, college, by = "idCollege", copy = T) %>% filter(idCollege != 'L') %>% filter(idCollege != 'NA') %>% filter(idCollege != 'MCOM') %>% filter(idCollege != 'VETM')
+
+collegeGPAdataUnder%>% arrange(desc(avg)) %>% select(avg, collegeName) %>% kable()
 
 ggplot(data = collegeGPAdataUnder)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
@@ -73,6 +77,8 @@ editedGraduationMaster <- graduation %>% filter(degreeLevel == 'Master') %>%  se
 averageGPAcollegeMaster <- editedGraduationMaster %>% group_by(idCollege) %>% summarise(avg = mean(cumulativeGPA, na.rm = T))
 collegeGPAdataMaster <- right_join(averageGPAcollegeMaster, college, by = "idCollege", copy = T) %>% filter(idCollege != 'NA') %>% filter(idCollege != 'L')
 
+collegeGPAdataMaster%>% arrange(desc(avg)) %>% select(avg, collegeName) %>% kable()
+
 ggplot(data = collegeGPAdataMaster)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -84,15 +90,23 @@ editedGraduationPhD <- graduation %>% filter(degreeLevel == 'PhD') %>%  select(g
 averageGPAcollegePhD <- editedGraduationPhD %>% group_by(idCollege) %>% summarise(avg = mean(cumulativeGPA, na.rm = T))
 collegeGPAdataPhD <- right_join(averageGPAcollegePhD, college, by = "idCollege", copy = T) %>% filter(idCollege != 'NA') %>% filter(idCollege != 'ADSN') %>% filter(idCollege != 'L')
 
+collegeGPAdataPhD%>% arrange(desc(avg)) %>% select(avg, collegeName) %>% kable()
+
 ggplot(data = collegeGPAdataPhD)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
    ggtitle('GPA by College(PhD)') 
 ```
 
+##Number of Graduates by College
+
+The number of graduates from each college was counted to consider how well the colleges are producing graduates.
+
 ```{r}
 numcollege <- left_join(graduation, college, by = 'idCollege', copy = T) %>% select(graduationId, collegeName) %>% group_by(collegeName) %>% count()
 numcollegeUnder <- left_join(graduation, college, by = 'idCollege', copy = T) %>% filter(degreeLevel == 'Bachelor') %>% select(graduationId, collegeName) %>% group_by(collegeName) %>% count()
+
+numcollegeUnder%>% arrange(desc(n)) %>% select(n, collegeName) %>% kable()
 
 ggplot(data = numcollegeUnder)+
   geom_col(aes(x = collegeName, y = n, fill = collegeName))+
@@ -103,6 +117,8 @@ ggplot(data = numcollegeUnder)+
 ```{r}
 numcollegeMaster <- left_join(graduation, college, by = 'idCollege', copy = T) %>% filter(degreeLevel == 'Master') %>% select(graduationId, collegeName) %>% group_by(collegeName) %>% count()
 
+numcollegeMaster%>% arrange(desc(n)) %>% select(n, collegeName) %>% kable()
+
 ggplot(data = numcollegeMaster)+
   geom_col(aes(x = collegeName, y = n, fill = collegeName))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -111,6 +127,8 @@ ggplot(data = numcollegeMaster)+
 
 ```{r}
 numcollegePhD <- left_join(graduation, college, by = 'idCollege', copy = T) %>% filter(degreeLevel == 'PhD') %>% select(graduationId, collegeName) %>% group_by(collegeName) %>% count()
+
+numcollegePhD%>% arrange(desc(n)) %>% select(n, collegeName) %>% kable()
 
 ggplot(data = numcollegePhD)+
   geom_col(aes(x = collegeName, y = n, fill = collegeName))+
@@ -122,13 +140,18 @@ ggplot(data = numcollegePhD)+
 gradandcollege <- left_join(graduation, college, by = 'idCollege', copy = T)
 ```
 
-
 ```{r}
 fulltime <- fulltime %>% mutate(graduationId = idCurrentPosition)
 ```
 
+##Average Salary by College
+
+Average salary was compared to see which college is producing the most valuable students to companies. 
+
 ```{r}
 saldataUnder <- gradandcollege %>% left_join(fulltime) %>% filter(degreeLevel == 'Bachelor') %>% select(graduationId, collegeName, salary) %>% filter(salary <= 1500000) %>% filter(salary >= 15080) %>% group_by(collegeName) %>% summarise(avg = mean(salary, na.rm = T)) %>% filter(collegeName != 'NA') 
+
+saldataUnder %>% arrange(desc(avg)) %>% kable()
 
 ggplot(data = saldataUnder)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
@@ -139,6 +162,8 @@ ggplot(data = saldataUnder)+
 ```{r}
 saldataMaster <- gradandcollege %>% left_join(fulltime) %>% filter(degreeLevel == 'Master') %>% select(graduationId, collegeName, salary) %>% filter(salary <= 200000) %>% filter(salary >= 15080)%>% group_by(collegeName) %>% summarise(avg = mean(salary, na.rm = T)) %>% filter(collegeName != 'NA') 
 
+saldataMaster %>% arrange(desc(avg)) %>% kable()
+
 ggplot(data = saldataMaster)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -148,32 +173,42 @@ ggplot(data = saldataMaster)+
 ```{r}
 saldataPhD <- gradandcollege %>% left_join(fulltime) %>% filter(degreeLevel == 'PhD') %>% select(graduationId, collegeName, salary) %>% filter(salary <= 200000) %>% filter(salary >= 15080)%>% group_by(collegeName) %>% summarise(avg = mean(salary, na.rm = T)) %>% filter(collegeName != 'NA') 
 
+saldataPhD %>% arrange(desc(avg)) %>% kable()
+
 ggplot(data = saldataPhD)+
   geom_col(aes(x = collegeName, y = avg, fill = collegeName))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
    ggtitle('Salaries by College(PhD)') 
 ```
 
-
 ```{r}
-Underactivity <- bacheloractivity %>% select(graduationId,graduationExpectedActivity,collegeName)%>% mutate(employed = ifelse(bacheloractivity$graduationExpectedActivity == c('Employed full-time','Employed part-time',"Employed full-time (on average 30 hours or more per week)","Employed part-time (on average less than 30 hours per week)"),yes = 'Employed', no = 'Not Employed')) %>% mutate(education = ifelse(bacheloractivity$graduationExpectedActivity == c("Graduate or professional school","Continuing education", "Enrolled in a program of continuing education"), yes = 'Continuing Education', no = 'Not Continuing Education'))%>% filter(!is.na(graduationExpectedActivity),!is.na(employed))%>%filter(graduationExpectedActivity != 'Other') %>% filter(graduationExpectedActivity != 'NA') %>% filter(graduationExpectedActivity != 'Starting or raising a family') %>%filter(graduationExpectedActivity != 'Volunteer activity') %>% filter(graduationExpectedActivity != 'Military service') %>% filter(graduationExpectedActivity != 'Seeking employment') %>% filter(graduationExpectedActivity != 'Volounteer activity') %>% filter(graduationExpectedActivity != 'Not seeking employment') %>% filter(graduationExpectedActivity != 'Not seeking employment or continuing education at that time') %>% filter(graduationExpectedActivity != 'Participating in a volunteer or service program') %>% filter(graduationExpectedActivity != 'Serving in the U.S. military') %>% filter(graduationExpectedActivity != 'Planning to continue education')%>% filter(graduationExpectedActivity != 'Planning to continue education but not yet enrolled')
-
 bacheloractivity <- gradandcollege %>%filter(degreeLevel == 'Bachelor') 
 
-#group_by(collegeName) %>% count(graduationExpectedActivity)     
+Underactivity <- bacheloractivity %>% select(graduationId,graduationExpectedActivity,collegeName)%>% mutate(employed = ifelse(bacheloractivity$graduationExpectedActivity == c('Employed full-time','Employed part-time',"Employed full-time (on average 30 hours or more per week)","Employed part-time (on average less than 30 hours per week)"),yes = 'Employed', no = 'Not Employed')) %>% mutate(education = ifelse(bacheloractivity$graduationExpectedActivity == c("Graduate or professional school","Continuing education", "Enrolled in a program of continuing education"), yes = 'Continuing Education', no = 'Not Continuing Education'))%>% filter(!is.na(graduationExpectedActivity),!is.na(employed))%>%filter(graduationExpectedActivity != 'Other') %>% filter(graduationExpectedActivity != 'NA') %>% filter(graduationExpectedActivity != 'Starting or raising a family') %>%filter(graduationExpectedActivity != 'Volunteer activity') %>% filter(graduationExpectedActivity != 'Military service') %>% filter(graduationExpectedActivity != 'Seeking employment') %>% filter(graduationExpectedActivity != 'Volounteer activity') %>% filter(graduationExpectedActivity != 'Not seeking employment') %>% filter(graduationExpectedActivity != 'Not seeking employment or continuing education at that time') %>% filter(graduationExpectedActivity != 'Participating in a volunteer or service program') %>% filter(graduationExpectedActivity != 'Serving in the U.S. military') %>% filter(graduationExpectedActivity != 'Planning to continue education')%>% filter(graduationExpectedActivity != 'Planning to continue education but not yet enrolled')
 ```
 
 ```{r}
+MSactivity <- gradandcollege %>%filter(degreeLevel == 'Master')
+
 Masteractivity <- MSactivity %>% select(graduationId,graduationExpectedActivity,collegeName) %>% mutate(employed = ifelse(MSactivity$graduationExpectedActivity == c('Employed full-time','Employed part-time',"Employed full-time (on average 30 hours or more per week)","Employed part-time (on average less than 30 hours per week)"),yes = 'Employed', no = 'Not Employed')) %>% mutate(education = ifelse(MSactivity$graduationExpectedActivity == c("Graduate or professional school","Continuing education", "Enrolled in a program of continuing education"), yes = 'Continuing Education', no = 'Not Continuing Education'))%>% filter(!is.na(graduationExpectedActivity),!is.na(employed))%>%filter(graduationExpectedActivity != 'Other') %>% filter(graduationExpectedActivity != 'NA') %>% filter(graduationExpectedActivity != 'Starting or raising a family') %>%filter(graduationExpectedActivity != 'Volunteer activity') %>% filter(graduationExpectedActivity != 'Military service') %>% filter(graduationExpectedActivity != 'Seeking employment') %>% filter(graduationExpectedActivity != 'Volounteer activity') %>% filter(graduationExpectedActivity != 'Not seeking employment') %>% filter(graduationExpectedActivity != 'Not seeking employment or continuing education at that time') %>% filter(graduationExpectedActivity != 'Participating in a volunteer or service program') %>% filter(graduationExpectedActivity != 'Serving in the U.S. military') %>% filter(graduationExpectedActivity != 'Planning to continue education')%>% filter(graduationExpectedActivity != 'Planning to continue education but not yet enrolled')
 
-MSactivity <- gradandcollege %>%filter(degreeLevel == 'Master')
+kable(head(Masteractivity))
+
 ```
 
 ```{r}
-PhDactivity <- Dactivity %>% select(graduationId,graduationExpectedActivity,collegeName) %>% mutate(employed = ifelse(Dactivity$graduationExpectedActivity == c('Employed full-time','Employed part-time',"Employed full-time (on average 30 hours or more per week)","Employed part-time (on average less than 30 hours per week)"),yes = 'Employed', no = 'Not Employed')) %>% mutate(education = ifelse(Dactivity$graduationExpectedActivity == c("Graduate or professional school","Continuing education", "Enrolled in a program of continuing education"), yes = 'Continuing Education', no = 'Not Continuing Education'))%>% filter(!is.na(graduationExpectedActivity),!is.na(employed))%>%filter(graduationExpectedActivity != 'Other') %>% filter(graduationExpectedActivity != 'NA') %>% filter(graduationExpectedActivity != 'Starting or raising a family') %>%filter(graduationExpectedActivity != 'Volunteer activity') %>% filter(graduationExpectedActivity != 'Military service') %>% filter(graduationExpectedActivity != 'Seeking employment') %>% filter(graduationExpectedActivity != 'Volounteer activity') %>% filter(graduationExpectedActivity != 'Not seeking employment') %>% filter(graduationExpectedActivity != 'Not seeking employment or continuing education at that time') %>% filter(graduationExpectedActivity != 'Participating in a volunteer or service program') %>% filter(graduationExpectedActivity != 'Serving in the U.S. military') %>% filter(graduationExpectedActivity != 'Planning to continue education')%>% filter(graduationExpectedActivity != 'Planning to continue education but not yet enrolled')
 
 Dactivity <- gradandcollege %>%filter(degreeLevel == 'PhD')
+
+PhDactivity <- Dactivity %>% select(graduationId,graduationExpectedActivity,collegeName) %>% mutate(employed = ifelse(Dactivity$graduationExpectedActivity == c('Employed full-time','Employed part-time',"Employed full-time (on average 30 hours or more per week)","Employed part-time (on average less than 30 hours per week)"),yes = 'Employed', no = 'Not Employed')) %>% mutate(education = ifelse(Dactivity$graduationExpectedActivity == c("Graduate or professional school","Continuing education", "Enrolled in a program of continuing education"), yes = 'Continuing Education', no = 'Not Continuing Education'))%>% filter(!is.na(graduationExpectedActivity),!is.na(employed))%>%filter(graduationExpectedActivity != 'Other') %>% filter(graduationExpectedActivity != 'NA') %>% filter(graduationExpectedActivity != 'Starting or raising a family') %>%filter(graduationExpectedActivity != 'Volunteer activity') %>% filter(graduationExpectedActivity != 'Military service') %>% filter(graduationExpectedActivity != 'Seeking employment') %>% filter(graduationExpectedActivity != 'Volounteer activity') %>% filter(graduationExpectedActivity != 'Not seeking employment') %>% filter(graduationExpectedActivity != 'Not seeking employment or continuing education at that time') %>% filter(graduationExpectedActivity != 'Participating in a volunteer or service program') %>% filter(graduationExpectedActivity != 'Serving in the U.S. military') %>% filter(graduationExpectedActivity != 'Planning to continue education')%>% filter(graduationExpectedActivity != 'Planning to continue education but not yet enrolled')
+
+kable(head(PhDactivity))
+
 ```
+
+##Percent of Graduating Class Continuing Education or Employed
+
+The percent of graduating class that is either continuing education or employed was considered to see how well each college places their student in the next step of their lives.
 
 ```{r}
 Undereducation <- Underactivity %>% group_by(collegeName) %>% count(education)
@@ -181,6 +216,8 @@ Undereducation <- Underactivity %>% group_by(collegeName) %>% count(education)
 Undereducationdata <- Undereducation%>% spread(education, "n")
 
 Underpereducation <- Undereducationdata %>% summarise(perc = `Continuing Education`/`Not Continuing Education`*100)
+
+Underpereducation %>% arrange(desc(perc)) %>% kable()
 
 ggplot(data = Underpereducation)+
   geom_col(aes(x = collegeName, y = perc, fill = collegeName))+ 
@@ -195,6 +232,8 @@ Mastereducationdata <- Mastereducation%>% spread(education, "n")
 
 Masterpereducation <- Mastereducationdata %>% summarise(perc = `Continuing Education`/`Not Continuing Education`*100)
 
+Masterpereducation %>% arrange(desc(perc)) %>% kable()
+
 ggplot(data = Masterpereducation)+
   geom_col(aes(x = collegeName, y = perc, fill = collegeName))+ 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -206,7 +245,9 @@ Underemployeddata <- Underactivity %>% group_by(collegeName) %>% count(employed)
 
 Underrealemployeddata <- Underemployeddata%>% spread(employed, "n")
 
-Underpercemployed <- Undderrealemployeddata %>% summarise(perc = Employed/`Not Employed`*100)
+Underpercemployed <- Underrealemployeddata %>% summarise(perc = Employed/`Not Employed`*100)
+
+Underpercemployed %>% arrange(desc(perc)) %>% kable()
 
 ggplot(data = Underpercemployed)+
   geom_col(aes(x = collegeName, y = perc, fill = collegeName))+ 
@@ -221,6 +262,8 @@ Masterrealemployeddata <- Masteremployeddata%>% spread(employed, "n")
 
 Masterpercemployed <- Masterrealemployeddata %>% summarise(perc = Employed/`Not Employed`*100)
 
+Masterpercemployed %>% arrange(desc(perc)) %>% kable()
+
 ggplot(data = Masterpercemployed)+
   geom_col(aes(x = collegeName, y = perc, fill = collegeName))+ 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -234,13 +277,10 @@ PhDrealemployeddata <- PhDemployeddata%>% spread(employed, "n")
 
 PhDpercemployed <- PhDrealemployeddata %>% summarise(perc = Employed/`Not Employed`*100)
 
+PhDpercemployed %>% arrange(desc(perc)) %>% kable()
+
 ggplot(data = PhDpercemployed)+
   geom_col(aes(x = collegeName, y = perc, fill = collegeName))+ 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
    ggtitle('Employment by College(PhD)')
 ```
-
-
-
-
-
